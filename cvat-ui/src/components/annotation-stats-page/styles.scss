@@ -13,6 +13,11 @@
     @include cvat-management-page-inner;
 
     padding-bottom: $grid-unit-size * 4;
+
+    // the chart grows with the number of labels, so the card has to grow with it
+    @media screen and (min-width: $scroll-breakpoint) {
+        height: auto;
+    }
 }
 
 .cvat-annotation-stats-inner-wrapper {

@@ -22,7 +22,7 @@ const options: ChartOptions<'bar'> = {
     indexAxis: 'y',
     maintainAspectRatio: false,
     scales: {
-        x: { beginAtZero: true, ticks: { precision: 0 } },
+        x: { position: 'top', beginAtZero: true, ticks: { precision: 0 } },
         y: { ticks: { autoSkip: false } },
     },
 };
