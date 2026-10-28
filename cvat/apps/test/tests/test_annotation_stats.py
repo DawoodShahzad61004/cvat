@@ -51,13 +51,13 @@ class AnnotationStatsApiTest(APITestCase):
             job=job, label=nose, parent=skeleton, frame=0, type="points", points=[0, 0]
         )
 
-    def _get_stats(self, user=None):
+    def _get_stats(self, user=None, query_params=None):
         url = f"/api/tasks/{self.task.id}/annotation-stats"
         if user is None:
-            return self.client.get(url)
+            return self.client.get(url, query_params=query_params)
 
         with ForceLogin(user, self.client):
-            return self.client.get(url)
+            return self.client.get(url, query_params=query_params)
 
     def test_counts_per_label(self):
         response = self._get_stats(self.owner)
@@ -73,6 +73,31 @@ class AnnotationStatsApiTest(APITestCase):
 
         names = [label["name"] for label in response.json()["labels"]]
         self.assertEqual(names, ["cat", "body", "dog", "unused"])
+
+    def test_group_by_type(self):
+        response = self._get_stats(self.owner, {"group_by": "type"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        by_type = {label["name"]: label["by_type"] for label in response.json()["labels"]}
+        self.assertEqual(
+            by_type,
+            {
+                "cat": {"rectangle": 2, "track": 1},
+                "dog": {"tag": 1},
+                "body": {"skeleton": 1},
+                "unused": {},
+            },
+        )
+
+    def test_counts_are_not_split_by_default(self):
+        response = self._get_stats(self.owner)
+
+        self.assertNotIn("by_type", response.json()["labels"][0])
+
+    def test_unknown_grouping_is_rejected(self):
+        response = self._get_stats(self.owner, {"group_by": "job"})
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_anonymous_request_is_rejected(self):
         self.assertEqual(self._get_stats().status_code, status.HTTP_401_UNAUTHORIZED)

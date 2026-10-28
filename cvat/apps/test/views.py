@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from cvat.apps.engine.models import Task
 
 from .permissions import AnnotationStatsPermission
-from .serializers import AnnotationStatsSerializer
+from .serializers import AnnotationStatsQuerySerializer, AnnotationStatsSerializer
 from .stats import get_annotation_stats
 
 
@@ -20,10 +20,16 @@ class AnnotationStatsViewSet(viewsets.ViewSet):
 
     @extend_schema(
         summary="Count the annotations of a task per label",
+        parameters=[AnnotationStatsQuerySerializer],
         responses=AnnotationStatsSerializer,
     )
     def retrieve(self, request, pk):
         task = get_object_or_404(Task.objects.select_related("project", "organization"), pk=pk)
         self.check_object_permissions(request, task)
 
-        return Response(AnnotationStatsSerializer(get_annotation_stats(task)).data)
+        query = AnnotationStatsQuerySerializer(data=request.query_params)
+        query.is_valid(raise_exception=True)
+        group_by_type = query.validated_data.get("group_by") == "type"
+
+        stats = get_annotation_stats(task, group_by_type=group_by_type)
+        return Response(AnnotationStatsSerializer(stats).data)
