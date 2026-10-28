@@ -10,6 +10,7 @@ import { Row, Col } from 'antd/lib/grid';
 import Button from 'antd/lib/button';
 import Empty from 'antd/lib/empty';
 import Result from 'antd/lib/result';
+import Switch from 'antd/lib/switch';
 import Text from 'antd/lib/typography/Text';
 import Title from 'antd/lib/typography/Title';
 
@@ -25,6 +26,7 @@ export interface LabelCount {
     name: string;
     color: string;
     count: number;
+    by_type?: Record<string, number>;
 }
 
 export interface AnnotationStats {
@@ -36,9 +38,11 @@ export interface AnnotationStats {
 type StatsState =
     { status: 'loading' } |
     { status: 'failed'; message: string } |
-    { status: 'loaded'; stats: AnnotationStats };
+    { status: 'loaded'; stats: AnnotationStats; groupedByType: boolean };
 
-function AnnotationStatsContent({ stats }: { stats: AnnotationStats }): JSX.Element {
+function AnnotationStatsContent(
+    { stats, groupedByType }: { stats: AnnotationStats; groupedByType: boolean },
+): JSX.Element {
     if (!stats.labels.length) {
         return <Empty className='cvat-annotation-stats-empty' description='This task has no labels' />;
     }
@@ -52,7 +56,7 @@ function AnnotationStatsContent({ stats }: { stats: AnnotationStats }): JSX.Elem
             <Text type='secondary'>
                 {`${stats.total} annotations across ${stats.labels.length} labels`}
             </Text>
-            <AnnotationStatsChart labels={stats.labels} />
+            <AnnotationStatsChart labels={stats.labels} groupedByType={groupedByType} />
         </>
     );
 }
@@ -60,17 +64,21 @@ function AnnotationStatsContent({ stats }: { stats: AnnotationStats }): JSX.Elem
 function AnnotationStatsPage(): JSX.Element {
     const taskId = +useParams<{ tid: string }>().tid;
     const [state, setState] = useState<StatsState>({ status: 'loading' });
+    const [groupByType, setGroupByType] = useState(false);
 
     const fetchStats = useCallback(() => {
         setState({ status: 'loading' });
-        core.server.request(`${core.config.backendAPI}/tasks/${taskId}/annotation-stats`, { method: 'GET' })
+        core.server.request(`${core.config.backendAPI}/tasks/${taskId}/annotation-stats`, {
+            method: 'GET',
+            params: groupByType ? { group_by: 'type' } : {},
+        })
             .then((response: { data: AnnotationStats }) => {
-                setState({ status: 'loaded', stats: response.data });
+                setState({ status: 'loaded', stats: response.data, groupedByType: groupByType });
             })
             .catch((error: unknown) => {
                 setState({ status: 'failed', message: error instanceof Error ? error.message : String(error) });
             });
-    }, [taskId]);
+    }, [taskId, groupByType]);
 
     useEffect(fetchStats, [fetchStats]);
 
@@ -83,9 +91,17 @@ function AnnotationStatsPage(): JSX.Element {
             </Row>
             <Row justify='center' className='cvat-annotation-stats-inner-wrapper'>
                 <Col span={22} xl={18} xxl={14} className='cvat-annotation-stats-inner'>
-                    <Title level={4} className='cvat-annotation-stats-header'>
-                        {`Annotations per label — task #${taskId}`}
-                    </Title>
+                    <div className='cvat-annotation-stats-header'>
+                        <Title level={4}>{`Annotations per label — task #${taskId}`}</Title>
+                        <span>
+                            <Switch
+                                className='cvat-annotation-stats-group-by-type'
+                                checked={groupByType}
+                                onChange={setGroupByType}
+                            />
+                            <Text className='cvat-annotation-stats-switch-label'>Split by annotation type</Text>
+                        </span>
+                    </div>
                     {state.status === 'loading' && <CVATLoadingSpinner />}
                     {state.status === 'failed' && (
                         <Result
@@ -96,7 +112,9 @@ function AnnotationStatsPage(): JSX.Element {
                             extra={<Button type='primary' onClick={fetchStats}>Retry</Button>}
                         />
                     )}
-                    {state.status === 'loaded' && <AnnotationStatsContent stats={state.stats} />}
+                    {state.status === 'loaded' && (
+                        <AnnotationStatsContent stats={state.stats} groupedByType={state.groupedByType} />
+                    )}
                 </Col>
             </Row>
         </div>

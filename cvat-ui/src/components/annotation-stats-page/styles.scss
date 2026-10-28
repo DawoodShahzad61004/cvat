@@ -26,6 +26,14 @@
 
 .cvat-annotation-stats-header {
     @include cvat-management-page-header;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cvat-annotation-stats-switch-label {
+    margin-left: $grid-unit-size;
 }
 
 .cvat-annotation-stats-empty {
