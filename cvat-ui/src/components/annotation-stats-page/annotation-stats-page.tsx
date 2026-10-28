@@ -11,6 +11,7 @@ import Button from 'antd/lib/button';
 import Empty from 'antd/lib/empty';
 import Result from 'antd/lib/result';
 import Switch from 'antd/lib/switch';
+import Tag from 'antd/lib/tag';
 import Text from 'antd/lib/typography/Text';
 import Title from 'antd/lib/typography/Title';
 
@@ -18,6 +19,7 @@ import { getCore } from 'cvat-core-wrapper';
 import GoBackButton from 'components/common/go-back-button';
 import CVATLoadingSpinner from 'components/common/loading-spinner';
 import AnnotationStatsChart from './annotation-stats-chart';
+import { LiveStatus, useLiveAnnotationStats } from './use-live-annotation-stats';
 
 const core = getCore();
 
@@ -39,6 +41,18 @@ type StatsState =
     { status: 'loading' } |
     { status: 'failed'; message: string } |
     { status: 'loaded'; stats: AnnotationStats; groupedByType: boolean };
+
+const LIVE_STATUS_TAGS: Record<LiveStatus, { color: string; text: string }> = {
+    connecting: { color: 'default', text: 'Connecting to live updates' },
+    live: { color: 'green', text: 'Live' },
+    reconnecting: { color: 'orange', text: 'Connection lost, reconnecting' },
+    stopped: { color: 'red', text: 'Live updates stopped' },
+};
+
+function LiveStatusTag({ status }: { status: LiveStatus }): JSX.Element {
+    const { color, text } = LIVE_STATUS_TAGS[status];
+    return <Tag className='cvat-annotation-stats-live-status' color={color}>{text}</Tag>;
+}
 
 function AnnotationStatsContent(
     { stats, groupedByType }: { stats: AnnotationStats; groupedByType: boolean },
@@ -72,8 +86,13 @@ function AnnotationStatsPage(): JSX.Element {
             method: 'GET',
             params: groupByType ? { group_by: 'type' } : {},
         })
-            .then((response: { data: AnnotationStats }) => {
-                setState({ status: 'loaded', stats: response.data, groupedByType: groupByType });
+            .then((response: { data: unknown }) => {
+                // while cvat_server restarts, Traefik routes /api to the UI container, which answers with
+                // index.html and status 200
+                if (!Array.isArray((response.data as AnnotationStats | null)?.labels)) {
+                    throw new Error('The server returned an unexpected response, it may be restarting');
+                }
+                setState({ status: 'loaded', stats: response.data as AnnotationStats, groupedByType: groupByType });
             })
             .catch((error: unknown) => {
                 setState({ status: 'failed', message: error instanceof Error ? error.message : String(error) });
@@ -81,6 +100,15 @@ function AnnotationStatsPage(): JSX.Element {
     }, [taskId, groupByType]);
 
     useEffect(fetchStats, [fetchStats]);
+
+    const liveStatus = useLiveAnnotationStats(
+        taskId,
+        groupByType,
+        state.status === 'loaded',
+        useCallback((stats: AnnotationStats) => {
+            setState({ status: 'loaded', stats, groupedByType: groupByType });
+        }, [groupByType]),
+    );
 
     return (
         <div className='cvat-annotation-stats-page'>
@@ -113,7 +141,10 @@ function AnnotationStatsPage(): JSX.Element {
                         />
                     )}
                     {state.status === 'loaded' && (
-                        <AnnotationStatsContent stats={state.stats} groupedByType={state.groupedByType} />
+                        <>
+                            <LiveStatusTag status={liveStatus} />
+                            <AnnotationStatsContent stats={state.stats} groupedByType={state.groupedByType} />
+                        </>
                     )}
                 </Col>
             </Row>

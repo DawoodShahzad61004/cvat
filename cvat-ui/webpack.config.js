@@ -91,6 +91,7 @@ module.exports = (env, argv = {}) => {
                 target: env && env.API_URL,
                 secure: false,
                 changeOrigin: true,
+                ws: true,
                 onProxyReq: (proxyReq) => {
                     proxyReq.setHeader('X-FORWARDED-HOST', `${host}:${port}`);
                 },

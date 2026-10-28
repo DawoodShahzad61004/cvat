@@ -36,6 +36,11 @@
     margin-left: $grid-unit-size;
 }
 
+.cvat-annotation-stats-live-status {
+    align-self: flex-start;
+    margin-bottom: $grid-unit-size;
+}
+
 .cvat-annotation-stats-empty {
     margin-top: $grid-unit-size * 8;
 }
