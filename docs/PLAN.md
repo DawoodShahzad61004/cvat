@@ -94,7 +94,7 @@ broadcasts — the conventional answer.
 - 130 lines of hand-written ASGI plumbing (`websocket.py`) that Channels would have provided, including
   the two browser-only bugs above, which a mature stack has already met.
 - No shared fan-out: every open socket holds its own Redis connection and recounts on its own, so N viewers of
-  one task cost N `GROUP BY`s per change (44 ms each on COCO). Channels groups would have let one recount be
+  one task cost N recounts per change (each the full endpoint, 44 ms end to end on COCO). Channels groups would have let one recount be
   broadcast. Fine for a handful of viewers; it is the first thing to change if this page became popular.
 - Replaying the request through middleware is unusual; a reader has to know that the socket's answer is,
   literally, the REST endpoint's answer.
