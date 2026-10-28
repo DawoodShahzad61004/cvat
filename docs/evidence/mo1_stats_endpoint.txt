@@ -1,0 +1,7 @@
+# 2026-10-29 01:47 PST task 3: COCO val2017, 5000 images, 41866 shapes, 80 labels, 10 jobs
+# GET /api/tasks/3/annotation-stats
+run 1: median 44.0 ms (min 38.2, max 50.3, n=20)
+run 2: median 43.9 ms (min 38.7, max 52.6, n=20)
+run 3: median 45.2 ms (min 39.1, max 54.3, n=20)
+run 4: median 43.2 ms (min 38.6, max 72.9, n=20)
+run 5: median 46.1 ms (min 40.7, max 50.4, n=20)

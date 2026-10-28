@@ -18,6 +18,19 @@ Windows 11 Home 10.0.26300, Docker Desktop 29.6.2.
 | Conditions | Local Docker stack, default compose file, the COCO task (image and annotation counts below), no other load, no other browser tabs on CVAT. |
 | Not included | First request after a server restart (cold Python imports, cold DB cache); Basic auth (it hashes the password on every request and would measure PBKDF2, not the endpoint). |
 
+**Result — met.** Run medians 44.0, 43.9, 45.2, 43.2, 46.1 ms → **median 44.0 ms**, spread 43.2–46.1 ms
+(slowest single request of 100: 72.9 ms). Raw output: [`evidence/mo1_stats_endpoint.txt`](evidence/mo1_stats_endpoint.txt),
+script: [`evidence/measure_latency.sh`](evidence/measure_latency.sh).
+
+Baseline, `GET /api/tasks/3/annotations` (5 single requests, 22.2 MB each): 3.71, 4.14, 4.15, 3.57, 3.58 s →
+median 3.71 s, spread 3.57–4.15 s. Raw output: [`evidence/mo1_baseline_full_annotations.txt`](evidence/mo1_baseline_full_annotations.txt).
+
+Honest reading: the target was cleared on the first measurement, with no tuning. The speed comes from the
+decision to aggregate in SQL (three `GROUP BY` queries over the indexed `job_id`, plus one for the labels) instead of serialising
+annotations, which is ~84× faster than the alternative and returns 4.6 KB instead of 22 MB. The target was set
+before I knew the baseline; knowing it now, 100 ms was not ambitious for this data size. Where it would be
+tested for real is a task 10–100× larger; I did not measure that.
+
 ## MO-2 — Live update delay
 
 | Field | Entry |
@@ -31,4 +44,12 @@ Windows 11 Home 10.0.26300, Docker Desktop 29.6.2.
 
 ## Dataset used
 
-_(Filled in after import: number of images, number of annotations, labels.)_
+Task 3, `coco-val2017`: **all 5,000 images** of COCO 2017 val, segment size 500 (10 jobs), 80 labels,
+`instances_val2017.json` imported as COCO 1.0.
+
+COCO has 36,781 instances; CVAT stores **41,866 shapes** (41,420 polygons + 446 masks). The difference is
+real, not a bug: CVAT turns each part of a multi-part COCO polygon into its own `LabeledShape` and links the
+parts with the `group` field (3,522 instances have more than one part), and the 446 crowd regions become masks.
+Collapsing grouped parts per frame in SQL gives exactly 36,781. The endpoint counts shapes, which is what CVAT
+stores and what the annotation view lists as objects; the per-label check against the file is in
+[`evidence/check_counts.txt`](evidence/check_counts.txt) (0 of 80 labels differ).

@@ -57,4 +57,15 @@ The actual number used is recorded in `OBJECTIVES.md`.
 
 ## Changes to this plan
 
-_(Filled in as the work goes, with the reason for each change.)_
+- **"Correct counts" needed a definition.** The first check against `instances_val2017.json` was off by
+  5,085 (41,866 vs 36,781). Cause: CVAT stores each part of a multi-part COCO polygon as its own shape,
+  linked by `group`. I kept counting shapes (what CVAT stores and shows) and changed the check to compare
+  against polygon parts per category; it matches on all 80 labels. Counting instances instead is recorded
+  as the rejected alternative in the decision record.
+- **Dataset took longer than planned.** The image zip downloaded at ~0.2 MB/s over one connection; I switched
+  to 24 parallel range requests (~10 MB/s). The default compose file has no share volume, so the images were
+  copied into the import worker and the task created with `copy_data`. Setup time, not counted.
+- **Order.** UI floor (2–4) was finished and committed before MO-1, as planned; MO-1 was cleared on the first
+  measurement, so no caching work was needed.
+- **Backend tests** run inside `cvat_server` after installing the dev requirements (`django-extensions`,
+  `django-silk`, `fakeredis`) that the production image lacks, with OPA pointed at the stack's `opa` service.
