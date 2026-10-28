@@ -1,0 +1,50 @@
+// Copyright (C) CVAT.ai Corporation
+//
+// SPDX-License-Identifier: MIT
+
+@import 'base';
+
+.cvat-annotation-stats-page {
+    height: 100%;
+    overflow: auto;
+}
+
+.cvat-annotation-stats-inner {
+    @include cvat-management-page-inner;
+
+    padding-bottom: $grid-unit-size * 4;
+
+    // the chart grows with the number of labels, so the card has to grow with it
+    @media screen and (min-width: $scroll-breakpoint) {
+        height: auto;
+    }
+}
+
+.cvat-annotation-stats-inner-wrapper {
+    @include cvat-management-page-inner-wrapper;
+}
+
+.cvat-annotation-stats-header {
+    @include cvat-management-page-header;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cvat-annotation-stats-switch-label {
+    margin-left: $grid-unit-size;
+}
+
+.cvat-annotation-stats-live-status {
+    align-self: flex-start;
+    margin-bottom: $grid-unit-size;
+}
+
+.cvat-annotation-stats-empty {
+    margin-top: $grid-unit-size * 8;
+}
+
+.cvat-annotation-stats-chart {
+    margin-top: $grid-unit-size * 2;
+}

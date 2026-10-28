@@ -6366,6 +6366,40 @@ paths:
       responses:
         '204':
           description: The task has been deleted
+  /api/tasks/{id}/annotation-stats:
+    get:
+      operationId: tasks_retrieve_annotation_stats
+      summary: Count the annotations of a task per label
+      parameters:
+      - in: query
+        name: group_by
+        schema:
+          enum:
+          - type
+          type: string
+          minLength: 1
+        description: '* `type` - type'
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - tasks
+      security:
+      - tokenAuth: []
+      - accessTokenAuth: []
+      - sessionAuth: []
+        csrfAuth: []
+        csrfHeaderAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/vnd.cvat+json:
+              schema:
+                $ref: '#/components/schemas/AnnotationStats'
+          description: ''
   /api/tasks/{id}/annotations/:
     get:
       operationId: tasks_retrieve_annotations
@@ -8127,6 +8161,21 @@ components:
           oneOf:
           - $ref: '#/components/schemas/ShapeType'
           - $ref: '#/components/schemas/NullEnum'
+    AnnotationStats:
+      type: object
+      properties:
+        task_id:
+          type: integer
+        total:
+          type: integer
+        labels:
+          type: array
+          items:
+            $ref: '#/components/schemas/LabelCount'
+      required:
+      - labels
+      - task_id
+      - total
     AnnotationTypeEnum:
       enum:
       - tag
@@ -9820,6 +9869,26 @@ components:
           type: boolean
           readOnly: true
       required:
+      - name
+    LabelCount:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        color:
+          type: string
+        count:
+          type: integer
+        by_type:
+          type: object
+          additionalProperties:
+            type: integer
+      required:
+      - color
+      - count
+      - id
       - name
     LabelMappingEntryRequest:
       type: object

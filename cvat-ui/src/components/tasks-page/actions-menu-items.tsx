@@ -108,6 +108,12 @@ export default function TaskActionsItems(menuItemsData: MenuItemsData, taskMenuP
     }, 60]);
 
     menuItems.push([{
+        key: 'view-annotation-stats',
+        label: withCount('Annotation statistics', 'view-annotation-stats', `/tasks/${taskId}/annotation-stats`),
+        disabled: isDisabled('view-annotation-stats'),
+    }, 65]);
+
+    menuItems.push([{
         key: 'quality_control',
         label: withCount('Quality control', 'quality_control', `/tasks/${taskId}/quality-control`),
         disabled: isDisabled('quality_control') || isQualityControlDisabled,

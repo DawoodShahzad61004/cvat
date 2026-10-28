@@ -1,0 +1,5 @@
+labels: COCO 80, endpoint 80
+COCO instances: 36781
+COCO shapes (polygon parts + masks): 41866
+endpoint total: 41866
+labels whose endpoint count differs from COCO shapes: 0

@@ -1,0 +1,6 @@
+# 2026-10-29 01:47 PST baseline: GET /api/tasks/3/annotations (what a client would fetch to count by itself)
+run 1: 3.712946 s, 22229233 bytes, HTTP 200
+run 2: 4.143330 s, 22229233 bytes, HTTP 200
+run 3: 4.148818 s, 22229233 bytes, HTTP 200
+run 4: 3.568227 s, 22229233 bytes, HTTP 200
+run 5: 3.582764 s, 22229233 bytes, HTTP 200
