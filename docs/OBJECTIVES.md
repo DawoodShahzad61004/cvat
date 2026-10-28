@@ -42,6 +42,17 @@ tested for real is a task 10–100× larger; I did not measure that.
 | Conditions | As MO-1. |
 | Not included | Time spent by the annotation UI before it sends the save; browser rendering time of the chart. |
 
+**Result — met.** 232.4, 233.6, 233.7, 233.3, 233.6 ms → **median 233.6 ms**, spread 232.4–233.7 ms, from the
+host through Traefik. Raw output: [`evidence/mo2_live_update.txt`](evidence/mo2_live_update.txt), script:
+[`evidence/measure_live_update.py`](evidence/measure_live_update.py).
+
+Where the time goes: 200 ms is the server's deliberate debounce (`DEBOUNCE_SECONDS`, so a burst of
+writes, such as an import touching the task once per job, is answered with one snapshot), and the
+remaining ~34 ms is the recount (MO-1) plus the hop through Redis. The same flow seen from a real browser
+page, including chart update, is in [`evidence/live_and_reconnect.txt`](evidence/live_and_reconnect.txt)
+(250–314 ms). The debounce is the lever: halving it would roughly halve this number and double the
+recounts during bursts.
+
 ## Dataset used
 
 Task 3, `coco-val2017`: **all 5,000 images** of COCO 2017 val, segment size 500 (10 jobs), 80 labels,

@@ -69,3 +69,39 @@ The actual number used is recorded in `OBJECTIVES.md`.
   measurement, so no caching work was needed.
 - **Backend tests** run inside `cvat_server` after installing the dev requirements (`django-extensions`,
   `django-silk`, `fakeredis`) that the production image lacks, with OPA pointed at the stack's `opa` service.
+- **Two bugs found only in a real browser**, after the script client passed: the browser's
+  `Accept-Encoding: gzip` on the upgrade request made Django gzip the snapshot (fixed by dropping the header
+  for the inner request), and during a `cvat_server` restart Traefik answers `/api/...` with the UI's
+  `index.html` and status 200, which crashed the page on Retry (fixed by rejecting a body without `labels`).
+- **Not planned, done:** regenerated `cvat/schema.yml` so the committed API schema matches the code.
+
+## Decision record
+
+**Context.** Requirement 8 needs the chart to move when annotations change. Two questions: how does the
+server learn about a change, and how does it reach the browser.
+
+**Taken.** The change signal is the existing `post_save(Task)` fired by `task.touch()` at the end of every
+annotation write; it is published to Redis (already in the stack) after commit, so writes made in import
+workers reach sockets held by server processes. The socket is a plain ASGI route in front of Django in
+`cvat/asgi.py` (uvicorn already speaks WebSocket). Each push is produced by running the existing REST
+request through Django's middleware as the connecting user, so authentication, the OPA check and the
+serializer are the same code path as `GET /annotation-stats`, and losing access closes the socket.
+
+**Rejected.** Django Channels: consumers, `AuthMiddlewareStack`, and a Redis channel layer with group
+broadcasts — the conventional answer.
+
+**What rejecting it cost.**
+- 130 lines of hand-written ASGI plumbing (`websocket.py`) that Channels would have provided, including
+  the two browser-only bugs above, which a mature stack has already met.
+- No shared fan-out: every open socket holds its own Redis connection and recounts on its own, so N viewers of
+  one task cost N `GROUP BY`s per change (44 ms each on COCO). Channels groups would have let one recount be
+  broadcast. Fine for a handful of viewers; it is the first thing to change if this page became popular.
+- Replaying the request through middleware is unusual; a reader has to know that the socket's answer is,
+  literally, the REST endpoint's answer.
+
+What it bought: no new dependency and no change to how CVAT's server process starts, and a single
+definition of "who may see these counts".
+
+**A second, smaller choice** — what to count. Counting CVAT shapes (41,866 on COCO) was taken over
+collapsing grouped polygon parts into COCO instances (36,781). The cost: the headline number disagrees with
+COCO's published count, and someone comparing them needs `OBJECTIVES.md` to know why.

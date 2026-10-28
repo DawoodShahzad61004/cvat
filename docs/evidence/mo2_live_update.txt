@@ -1,0 +1,7 @@
+# 2026-10-29 02:20 PST host -> Traefik localhost:8080, task 3 (COCO val2017), python 3.14.2 websockets 17.3
+run 1: 232.4 ms  (person: 12451 -> 12452)
+run 2: 233.6 ms  (person: 12451 -> 12452)
+run 3: 233.7 ms  (person: 12451 -> 12452)
+run 4: 233.3 ms  (person: 12451 -> 12452)
+run 5: 233.6 ms  (person: 12451 -> 12452)
+median 233.6 ms, spread 232.4-233.7 ms, n=5

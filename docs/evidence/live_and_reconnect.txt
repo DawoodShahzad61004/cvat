@@ -1,0 +1,10 @@
+[+8.46s] page loaded, status "Live", total 41866
+[+8.77s] saved 1 rectangle in job 10; page total 41866 -> 41867 after 250 ms, no reload
+[+8.90s] restarting cvat_server
+[+10.04s] status "Connection lost, reconnecting"
+[+25.07s] status "Live" again, total 41867
+[+25.60s] saved 1 rectangle in job 10; page total 41867 -> 41868 after 314 ms, no reload
+[+25.60s] stopping cvat_server, then switching "Split by annotation type", which refetches
+[+57.08s] error state: Could not load annotation statistics | Gateway Timeout | Retry
+[+72.61s] clicked Retry: status "Live", total 41868
+[+72.95s] deleted the 2 test rectangles; page total 41866

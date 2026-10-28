@@ -1,7 +1,10 @@
-# 2026-10-29 01:48 PST python3 manage.py test cvat.apps.test -v 2 (inside cvat_server, testing settings with OPA at http://opa:8181)
+# 2026-10-29 02:20 PST python3 manage.py test cvat.apps.test -v 2 (inside cvat_server, testing settings with OPA at http://opa:8181)
 test_anonymous_request_is_rejected (cvat.apps.test.tests.test_annotation_stats.AnnotationStatsApiTest.test_anonymous_request_is_rejected) ... ok
+test_counts_are_not_split_by_default (cvat.apps.test.tests.test_annotation_stats.AnnotationStatsApiTest.test_counts_are_not_split_by_default) ... ok
 test_counts_per_label (cvat.apps.test.tests.test_annotation_stats.AnnotationStatsApiTest.test_counts_per_label) ... ok
+test_group_by_type (cvat.apps.test.tests.test_annotation_stats.AnnotationStatsApiTest.test_group_by_type) ... ok
 test_labels_are_sorted_by_count (cvat.apps.test.tests.test_annotation_stats.AnnotationStatsApiTest.test_labels_are_sorted_by_count) ... ok
+test_unknown_grouping_is_rejected (cvat.apps.test.tests.test_annotation_stats.AnnotationStatsApiTest.test_unknown_grouping_is_rejected) ... ok
 test_user_without_access_is_rejected (cvat.apps.test.tests.test_annotation_stats.AnnotationStatsApiTest.test_user_without_access_is_rejected) ... ok
-Ran 4 tests in 0.131s
+Ran 7 tests in 0.176s
 OK
