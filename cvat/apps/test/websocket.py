@@ -45,6 +45,9 @@ def _get_stats_response(scope: dict) -> tuple[int, str]:
         "type": "http",
         "method": "GET",
         "path": scope["path"].removesuffix("/ws"),
+        # browsers send Accept-Encoding with the upgrade request; without dropping it
+        # GZipMiddleware would compress the body, and a WebSocket frame is sent as is
+        "headers": [header for header in scope["headers"] if header[0] != b"accept-encoding"],
     }
 
     # this runs outside Django's request cycle, which normally does this cleanup
